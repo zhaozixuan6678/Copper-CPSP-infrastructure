@@ -2,7 +2,8 @@
 
 Copper-CPSP-infrastructure is an integrated data-driven pipeline for rapid discovery and optimization of high-performance copper alloys. It combines macro‑level semantic modeling, micro‑level data extraction, and rapid alloy design to transform unstructured metallurgical literature into actionable insights and predictive models.
 
-https://private-user-images.githubusercontent.com/111862264/598269691-b8b50f40-0579-4836-985d-fde013fb708e.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3Nzk4MDc1NDAsIm5iZiI6MTc3OTgwNzI0MCwicGF0aCI6Ii8xMTE4NjIyNjQvNTk4MjY5NjkxLWI4YjUwZjQwLTA1NzktNDgzNi05ODVkLWZkZTAxM2ZiNzA4ZS5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwNTI2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDUyNlQxNDU0MDBaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT00ZTFlYzI4ODg0MmNlNjUyYjRiN2ZjN2Q3NWQyZWE5ZDQ5M2Y1MzJkODdmYTAxNDY1Y2EwMGY5MWRjYjczMjM3JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZyZXNwb25zZS1jb250ZW50LXR5cGU9aW1hZ2UlMkZwbmcifQ.Oxmbvd3E8TRO0c_s9V-qkyTh5hWZYWrn54TxOXueVR8
+https://github.com/zhaozixuan6678/Copper-CPSP-infrastructure/blob/main/Asset/%E5%9B%BE%E5%BD%A2%E6%91%98%E8%A6%81.png
+
 The infrastructure is built around three core modules:
 
 * Macro‑ and meso‑level semantic modeling: Large‑scale topic modeling of >120k publications using BERTopic + UMAP and LDA to map research trends and emerging topics in copper alloy design.
