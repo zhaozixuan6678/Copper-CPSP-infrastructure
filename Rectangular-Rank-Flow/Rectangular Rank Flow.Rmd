@@ -1,0 +1,496 @@
+---
+title: "Rectangular Rank Flow (Bump Chart) Visualization"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## 📊 Rank Flows (Bump Chart) for Year–Country–Counts
+
+```{r pressure, echo=FALSE}
+# ============================================================
+# Rectangular Rank Flow：矩形条带 + 斜向连接 + 入/出场楔形
+# 关键：缩短每年矩形（tile_inset），把交叉放在年份之间的过渡区
+# ============================================================
+# 依赖包（首次运行请先安装）：
+# install.packages("tidyverse")
+ library(tidyverse)
+ library(ggbump)
+ library(scales)
+ library(tidyverse)
+```
+
+```{r, message=FALSE, warning=FALSE, fig.width=20, fig.height=6}
+# 10 Years: tile_inset   = 0.08,  label_size = 3.8 
+#  6 Years: tile_inset   = 0.15,  label_size = 5.3
+csv_path    = "/Users/zixuanzhao/Desktop/MKG/JMI邀稿文章/Rectangular-Rank-Flow.csv"  # Year, Countries, Counts
+top_n       = 7
+label_mode  = "both"   # "both"=“计数+国家”；"country"=只显示国家
+font_family = NULL
+
+# 外观
+lane_half    = 0.50
+gap_year     = 0.48
+tile_inset   = 0.15
+conn_overlap = 0.20
+eps          = 0.002   # 边界微重叠，消除拼接缝
+
+# 标签更大
+label_size = 5.3 #
+label_face = "bold"
+
+# 配色
+palette_vals = c(
+  "#53A93F", "#0B5D50", "#7FB3FF", "#BB1E10", "#FFB300",
+  "#FFCC00", "#0B74C8", "#FDB462", "#8E24AA", "#6D6E71",
+  "#1976D2", "#D81B60", "#00897B", "#5D4037"
+)
+
+# ---------- 读入后：把 Countries 做“可控换行” ----------
+wrap_map <- c(
+  "Electrodeposition" = "Electro-\nDeposition",
+  "SurfaceReactivity" = "Surface\nReactivity",  
+  "MolecularDynamics" = "Molecular\nDynamics", 
+  "Microstructure" = "Micro-\nStructure"
+  # 需要哪个就继续加
+)
+
+ranked = df %>%
+  group_by(Year) %>%
+  arrange(desc(Counts), .by_group = TRUE) %>%
+  mutate(Rank = row_number()) %>%
+  ungroup()
+
+plot_df = ranked %>% filter(Rank <= top_n)
+stopifnot(nrow(plot_df) > 0)
+years = sort(unique(plot_df$Year))
+
+# 标签内容
+tiles_label = if (label_mode == "country") {
+  plot_df %>% transmute(Year, Rank, Countries, label = Countries)
+} else {
+  plot_df %>% transmute(Year, Rank, Countries, label = paste0(Counts, " ", Countries))
+}
+
+# ---------- 每年矩形（缩短 + 轻微外扩覆盖 eps） ----------
+tiles = plot_df %>%
+  transmute(
+    Countries, Counts, Year, Rank,
+    xmin = Year - (gap_year - tile_inset) - eps,
+    xmax = Year + (gap_year - tile_inset) + eps,
+    ymin = Rank - lane_half,
+    ymax = Rank + lane_half
+  ) %>%
+  left_join(tiles_label, by = c("Year","Rank","Countries"))
+
+# ---------- 连接块 ----------
+make_connector = function(df_year_t, df_year_t1, year_t) {
+  d = df_year_t %>% select(Countries, r0 = Rank) %>%
+      inner_join(df_year_t1 %>% select(Countries, r1 = Rank), by = "Countries")
+  if (nrow(d) == 0) return(tibble())
+
+  xL_in = year_t + (gap_year - tile_inset)
+  xR_in = year_t + 1 - (gap_year - tile_inset)
+
+  xL_in2 = xL_in - conn_overlap - eps
+  xL_in_o = xL_in + eps
+  xR_in_o = xR_in - eps
+  xR_in2 = xR_in + conn_overlap + eps
+
+  purrr::pmap_dfr(d, function(Countries, r0, r1){
+    tibble(
+      Countries = Countries,
+      x = c(xL_in2, xL_in_o, xR_in_o, xR_in2, xR_in_o, xL_in_o),
+      y = c(r0 - lane_half, r0 - lane_half, r1 - lane_half,
+            r1,              r1 + lane_half, r0 + lane_half),
+      pid = paste0(Countries, "_", year_t)
+    )
+  })
+}
+
+connectors = purrr::map_dfr(
+  1:(length(years) - 1),
+  ~ make_connector(
+      plot_df %>% filter(Year == years[.x]),
+      plot_df %>% filter(Year == years[.x + 1]),
+      years[.x]
+    )
+)
+
+# ---------- 入/出场楔形（带 eps 无缝衔接） ----------
+make_entries = function(df_prev, df_curr, year_t, wedge = conn_overlap){
+  d = df_curr %>% anti_join(df_prev, by = "Countries") %>% transmute(Countries, r = Rank)
+  if (nrow(d) == 0) return(tibble())
+  x_in  = year_t - (gap_year - tile_inset)
+  x_tip = x_in - wedge - eps
+  purrr::pmap_dfr(d, function(Countries, r){
+    tibble(
+      Countries = Countries,
+      x = c(x_tip, x_in + eps, x_in + eps, x_tip),
+      y = c(r,     r - lane_half, r + lane_half, r),
+      gid = paste0(Countries, "_entry_", year_t)
+    )
+  })
+}
+
+make_exits = function(df_curr, df_next, year_t, wedge = conn_overlap){
+  d = df_curr %>% anti_join(df_next, by = "Countries") %>% transmute(Countries, r = Rank)
+  if (nrow(d) == 0) return(tibble())
+  x_in  = year_t + (gap_year - tile_inset)
+  x_tip = x_in + wedge + eps
+  purrr::pmap_dfr(d, function(Countries, r){
+    tibble(
+      Countries = Countries,
+      x = c(x_in - eps, x_tip, x_tip, x_in - eps),
+      y = c(r - lane_half, r, r, r + lane_half),
+      gid = paste0(Countries, "_exit_", year_t)
+    )
+  })
+}
+
+entries = purrr::map_dfr(2:length(years), ~ make_entries(
+  plot_df %>% filter(Year == years[.x-1]),
+  plot_df %>% filter(Year == years[.x]),
+  years[.x]
+))
+exits = purrr::map_dfr(1:(length(years)-1), ~ make_exits(
+  plot_df %>% filter(Year == years[.x]),
+  plot_df %>% filter(Year == years[.x+1]),
+  years[.x]
+))
+
+# ---------- 颜色映射（稳定） ----------
+countries_order = plot_df %>%
+  group_by(Countries) %>%
+  summarise(Total = sum(Counts, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(Total)) %>% pull(Countries)
+country_colours = setNames(rep(palette_vals, length.out = length(countries_order)),
+                           countries_order)
+
+# ---------- 主题（去掉外边距与灰白边） ----------
+# ---- 主题（只贴出需修改的部分）----
+base_theme = theme_minimal(base_family = font_family) +
+  theme(
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "#F5F5F5", colour = NA),
+    plot.background  = element_rect(fill = "#F5F5F5", colour = NA),
+
+    axis.title = element_blank(),
+    # 关键：给 y 轴文字加右侧外边距，让数字与绘图区拉开距离
+    axis.text.y = element_text(size = 14, colour = "#666666", face = "bold",
+                               margin = margin(r = 3)),  # ← 调大 r 就更宽
+    axis.text.x = element_text(size = 14, colour = "#666666", face = "bold",
+                           margin = margin(t = 4)),
+    axis.ticks  = element_blank(),
+
+    legend.position = "none",
+    plot.title = element_text(face = "bold", size = 18, hjust = 0.5),
+    plot.subtitle = element_text(size = 14, colour = "#666666"),
+
+    # 给整图左侧留一点图外边距，避免数字贴到画布边缘
+    plot.margin = margin(0, 0, 0, 6)   # ← 视需要调大/调小
+  )
+
+# ---------- 绘图（无边线；零 expand；背景全铺） ----------
+y_breaks = 1:top_n
+x_breaks = years
+
+p = ggplot() +
+  annotate("rect",
+           xmin = min(years) - 0.5, xmax = max(years) + 0.5,
+           ymin = 0.5, ymax = top_n + 0.5, fill = "#F5F5F5") +
+  geom_hline(yintercept = y_breaks + 0.5, colour = "white", linewidth = 0.6) +
+
+  # ── connectors ──
+  { if (nrow(connectors) > 0)
+      geom_polygon(data = connectors,
+                   aes(x = x, y = y, group = pid, fill = Countries),
+                   colour = NA, linewidth = 0) } +
+
+  # ── entries ──
+  { if (nrow(entries) > 0)
+      geom_polygon(data = entries,
+                   aes(x = x, y = y, group = gid, fill = Countries),
+                   colour = NA, linewidth = 0) } +
+
+  # ── exits ──
+  { if (nrow(exits) > 0)
+      geom_polygon(data = exits,
+                   aes(x = x, y = y, group = gid, fill = Countries),
+                   colour = NA, linewidth = 0) } +
+
+  geom_rect(
+    data = tiles,
+    aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = Countries),
+    colour = NA, linewidth = 0
+  ) +
+  geom_text(
+    data = tiles,
+    aes(x = Year, y = Rank, label = label),
+    size = label_size, colour = "white", fontface = label_face, lineheight = 0.9
+  ) +
+  scale_y_reverse(breaks = y_breaks, limits = c(top_n + 0.5, 0.5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = x_breaks,
+                     limits = c(min(years) - 0.5, max(years) + 0.5),
+                     expand = c(0, 0)) +
+  scale_fill_manual(values = country_colours) +
+  labs(title = "Rectangular Rank Flow (with crossover zone & entries/exits)") +
+  base_theme
+
+p
+```
+```{r, fig.width=15, fig.height=6, out.width="65%"}
+# 图片长度压缩，字体放大版本
+# ============================================================
+# Rectangular Rank Flow：矩形条带 + 斜向连接 + 入/出场楔形
+# ✅ 修复 make_connector() year_t1 未定义报错
+# ✅ 年份压缩但不裁切/不灰边（year_spacing 一键控制）
+# ============================================================
+
+library(dplyr)
+library(stringr)
+library(readr)
+library(purrr)
+library(ggplot2)
+library(tibble)
+
+csv_path    = "/Users/zixuanzhao/Desktop/MKG/JMI邀稿文章/Rectangular-Rank-Flow.csv"
+top_n       = 7
+label_mode  = "both"
+font_family = NULL
+
+# ======= 只调这个：年份之间的紧凑程度（越小越紧）=======
+year_spacing <- 0.85   # 建议 0.75~0.95
+
+lane_half  <- 0.50
+eps        <- 0.002
+
+# ======= 几何参数跟随 year_spacing 自动收缩 =======
+gap_year     <- year_spacing/2 - 0.04
+tile_inset   <- 0.10
+conn_overlap <- 0.08
+
+label_size <- 5.3
+label_face <- "bold"
+
+palette_vals <- c(
+  "#53A93F", "#0B5D50", "#7FB3FF", "#BB1E10", "#FFB300",
+  "#FFCC00", "#0B74C8", "#FDB462", "#8E24AA", "#6D6E71",
+  "#1976D2", "#D81B60", "#00897B", "#5D4037"
+)
+
+# ---------- 1) 读入数据 ----------
+df <- readr::read_csv(csv_path, show_col_types = FALSE) %>%
+  mutate(
+    Year      = as.integer(Year),
+    Countries = as.character(Countries),
+    Counts    = as.numeric(Counts)
+  )
+
+# ---------- 2) Countries 可控换行 ----------
+wrap_map <- c(
+  "Electrodeposition"  = "Electro-\nDeposition",
+  "SurfaceReactivity"  = "Surface\nReactivity",
+  "MolecularDynamics"  = "Molecular\nDynamics",
+  "Microstructure"     = "Micro-\nStructure"
+)
+
+df <- df %>%
+  mutate(
+    Countries = str_replace_all(Countries, "[\r\n]+", " "),
+    Countries = str_squish(Countries),
+    Countries = recode(Countries, !!!wrap_map)
+  )
+
+# ---------- 3) 排名 ----------
+ranked <- df %>%
+  group_by(Year) %>%
+  arrange(desc(Counts), .by_group = TRUE) %>%
+  mutate(Rank = row_number()) %>%
+  ungroup()
+
+plot_df <- ranked %>% filter(Rank <= top_n)
+stopifnot(nrow(plot_df) > 0)
+
+years <- sort(unique(plot_df$Year))
+
+# Year -> Year_pos（0, year_spacing, 2*year_spacing,...）
+year_map <- setNames((seq_along(years) - 1) * year_spacing, years)
+plot_df  <- plot_df %>% mutate(Year_pos = as.numeric(year_map[as.character(Year)]))
+
+# 标签内容
+tiles_label <- if (label_mode == "country") {
+  plot_df %>% transmute(Year, Year_pos, Rank, Countries, label = Countries)
+} else {
+  plot_df %>% transmute(Year, Year_pos, Rank, Countries, label = paste0(Counts, " ", Countries))
+}
+
+# ---------- 4) 每年矩形 ----------
+tiles <- plot_df %>%
+  transmute(
+    Countries, Counts, Year, Year_pos, Rank,
+    xmin = Year_pos - (gap_year - tile_inset) - eps,
+    xmax = Year_pos + (gap_year - tile_inset) + eps,
+    ymin = Rank - lane_half,
+    ymax = Rank + lane_half
+  ) %>%
+  left_join(tiles_label, by = c("Year","Year_pos","Rank","Countries"))
+
+# ---------- 5) 连接块（显式传入下一年 year_t1，避免变量名错误） ----------
+make_connector <- function(df_year_t, df_year_t1, year_t, year_t1) {
+  d <- df_year_t %>% select(Countries, r0 = Rank) %>%
+    inner_join(df_year_t1 %>% select(Countries, r1 = Rank), by = "Countries")
+  if (nrow(d) == 0) return(tibble())
+
+  x_t  <- as.numeric(year_map[as.character(year_t)])
+  x_t1 <- as.numeric(year_map[as.character(year_t1)])
+
+  xL_in <- x_t  + (gap_year - tile_inset)
+  xR_in <- x_t1 - (gap_year - tile_inset)
+
+  xL_in2  <- xL_in - conn_overlap - eps
+  xL_in_o <- xL_in + eps
+  xR_in_o <- xR_in - eps
+  xR_in2  <- xR_in + conn_overlap + eps
+
+  purrr::pmap_dfr(d, function(Countries, r0, r1){
+    tibble(
+      Countries = Countries,
+      x = c(xL_in2, xL_in_o, xR_in_o, xR_in2, xR_in_o, xL_in_o),
+      y = c(r0 - lane_half, r0 - lane_half, r1 - lane_half,
+            r1,              r1 + lane_half, r0 + lane_half),
+      pid = paste0(Countries, "_", year_t)
+    )
+  })
+}
+
+connectors <- purrr::map_dfr(
+  1:(length(years) - 1),
+  ~ make_connector(
+    plot_df %>% filter(Year == years[.x]),
+    plot_df %>% filter(Year == years[.x + 1]),
+    years[.x],
+    years[.x + 1]
+  )
+)
+
+# ---------- 6) 入/出场楔形 ----------
+make_entries <- function(df_prev, df_curr, year_t, wedge = conn_overlap){
+  d <- df_curr %>% anti_join(df_prev, by = "Countries") %>% transmute(Countries, r = Rank)
+  if (nrow(d) == 0) return(tibble())
+
+  x_t   <- as.numeric(year_map[as.character(year_t)])
+  x_in  <- x_t - (gap_year - tile_inset)
+  x_tip <- x_in - wedge - eps
+
+  purrr::pmap_dfr(d, function(Countries, r){
+    tibble(
+      Countries = Countries,
+      x = c(x_tip, x_in + eps, x_in + eps, x_tip),
+      y = c(r,     r - lane_half, r + lane_half, r),
+      gid = paste0(Countries, "_entry_", year_t)
+    )
+  })
+}
+
+make_exits <- function(df_curr, df_next, year_t, wedge = conn_overlap){
+  d <- df_curr %>% anti_join(df_next, by = "Countries") %>% transmute(Countries, r = Rank)
+  if (nrow(d) == 0) return(tibble())
+
+  x_t   <- as.numeric(year_map[as.character(year_t)])
+  x_in  <- x_t + (gap_year - tile_inset)
+  x_tip <- x_in + wedge + eps
+
+  purrr::pmap_dfr(d, function(Countries, r){
+    tibble(
+      Countries = Countries,
+      x = c(x_in - eps, x_tip, x_tip, x_in - eps),
+      y = c(r - lane_half, r, r, r + lane_half),
+      gid = paste0(Countries, "_exit_", year_t)
+    )
+  })
+}
+
+entries <- purrr::map_dfr(
+  2:length(years),
+  ~ make_entries(
+    plot_df %>% filter(Year == years[.x-1]),
+    plot_df %>% filter(Year == years[.x]),
+    years[.x]
+  )
+)
+
+exits <- purrr::map_dfr(
+  1:(length(years)-1),
+  ~ make_exits(
+    plot_df %>% filter(Year == years[.x]),
+    plot_df %>% filter(Year == years[.x+1]),
+    years[.x]
+  )
+)
+
+# ---------- 7) 颜色映射 ----------
+countries_order <- plot_df %>%
+  group_by(Countries) %>%
+  summarise(Total = sum(Counts, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(Total)) %>% pull(Countries)
+
+country_colours <- setNames(rep(palette_vals, length.out = length(countries_order)),
+                            countries_order)
+
+# ---------- 8) x 轴范围：包含楔形尖端，避免两侧“灰/裁切” ----------
+pad <- (gap_year - tile_inset) + conn_overlap + 0.06
+x_breaks <- as.numeric(year_map)
+x_labels <- names(year_map)
+x_min <- min(x_breaks) - pad
+x_max <- max(x_breaks) + pad
+
+# ---------- 9) 主题 ----------
+base_theme <- theme_minimal(base_family = font_family) +
+  theme(
+    panel.grid = element_blank(),
+    panel.background = element_rect(fill = "#F5F5F5", colour = NA),
+    plot.background  = element_rect(fill = "#F5F5F5", colour = NA),
+    axis.title = element_blank(),
+    axis.text.y = element_text(size = 14, colour = "#666666", face = "bold", margin = margin(r = 3)),
+    axis.text.x = element_text(size = 14, colour = "#666666", face = "bold", margin = margin(t = 4)),
+    axis.ticks  = element_blank(),
+    legend.position = "none",
+    plot.title = element_text(face = "bold", size = 18, hjust = 0.5),
+    plot.margin = margin(0, 0, 0, 6)
+  )
+
+y_breaks <- 1:top_n
+
+p <- ggplot() +
+  annotate("rect", xmin = x_min, xmax = x_max,
+           ymin = 0.5, ymax = top_n + 0.5, fill = "#F5F5F5") +
+  geom_hline(yintercept = y_breaks + 0.5, colour = "white", linewidth = 0.6) +
+  { if (nrow(connectors) > 0)
+      geom_polygon(data = connectors,
+                   aes(x = x, y = y, group = pid, fill = Countries),
+                   colour = NA, linewidth = 0) } +
+  { if (nrow(entries) > 0)
+      geom_polygon(data = entries,
+                   aes(x = x, y = y, group = gid, fill = Countries),
+                   colour = NA, linewidth = 0) } +
+  { if (nrow(exits) > 0)
+      geom_polygon(data = exits,
+                   aes(x = x, y = y, group = gid, fill = Countries),
+                   colour = NA, linewidth = 0) } +
+  geom_rect(data = tiles,
+            aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax, fill = Countries),
+            colour = NA, linewidth = 0) +
+  geom_text(data = tiles,
+            aes(x = Year_pos, y = Rank, label = label),
+            size = label_size, colour = "white", fontface = label_face, lineheight = 0.9) +
+  scale_y_reverse(breaks = y_breaks, limits = c(top_n + 0.5, 0.5), expand = c(0, 0)) +
+  scale_x_continuous(breaks = x_breaks, labels = x_labels,
+                     limits = c(x_min, x_max), expand = c(0, 0)) +
+  scale_fill_manual(values = country_colours) +
+  labs(title = "Rectangular Rank Flow") +
+  base_theme
+
+p
+```
