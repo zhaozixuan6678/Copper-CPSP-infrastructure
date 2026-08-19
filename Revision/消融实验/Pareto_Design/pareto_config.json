@@ -1,0 +1,21 @@
+{
+  "output_dir": "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/ML2/消融实验/Pareto_Design/results_formal",
+  "n_candidates": 131072,
+  "bootstrap_models": 20,
+  "composition_ranges_wt_pct": {
+    "Al": [0.30, 0.50],
+    "Cr": [0.10, 0.30],
+    "Mg": [0.01, 0.16],
+    "Ni": [4.00, 6.00],
+    "Si": [1.00, 1.40],
+    "Zr": [0.00, 0.00]
+  },
+  "fixed_processing": {
+    "Processing_Route": 2,
+    "Solution_Temp": 980.0,
+    "Solution_Time": 4.0,
+    "CR_Reduction": 50.0,
+    "Aging_Temp": 450.0,
+    "Aging_Time": 4.0
+  }
+}

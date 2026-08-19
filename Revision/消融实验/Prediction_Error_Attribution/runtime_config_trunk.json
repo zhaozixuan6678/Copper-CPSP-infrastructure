@@ -1,0 +1,198 @@
+{
+  "random_seed": 42,
+  "test_size": 0.2,
+  "id_column": "ID",
+  "strict_target_match": true,
+  "cumulative_features": true,
+  "target_aliases": {
+    "HV": [
+      "Hardness/HV",
+      "HV"
+    ],
+    "EC": [
+      "EC/%IACS",
+      "EC"
+    ],
+    "Q3": [
+      "Q3-Euclidean",
+      "Q3-Eu"
+    ]
+  },
+  "auto_input_audit": {
+    "enabled": true,
+    "candidate_files": [
+      "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/FE/Feature1.xlsx",
+      "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/FE/Feature2.xlsx",
+      "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/FE/Feature/Feature1.xlsx",
+      "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/FE/Feature/Feature2.xlsx",
+      "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/FE/Feature/Feature3.xlsx"
+    ],
+    "stage_required_markers": {
+      "S2": {
+        "HV": [
+          "One-Hot-Processing",
+          "CR_x_ATem",
+          "ATem_x_Atime",
+          "STem-ATem"
+        ],
+        "EC": [
+          "One-Hot-Processing",
+          "CR_x_ATem",
+          "ATem_x_Atime",
+          "STem-ATem"
+        ],
+        "Q3": [
+          "One-Hot-Processing",
+          "CR_x_ATem",
+          "ATem_x_Atime",
+          "STem-ATem"
+        ]
+      }
+    }
+  },
+  "stage3_search_iterations": 30,
+  "stage3_optimizer": "optuna",
+  "optuna_trials": 150,
+  "optuna_target_cv_r2": 0.9,
+  "cv_folds": 5,
+  "output_directory": "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/ML2/消融实验/Prediction_Error_Attribution/results",
+  "stages": {
+    "S0": {
+      "label": "Composition-only",
+      "file": "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/FE/Feature3.xlsx",
+      "sheets": {
+        "HV": "HV",
+        "EC": "EC",
+        "Q3": "Q3-Eu"
+      },
+      "target_columns": {
+        "HV": "HV",
+        "EC": "EC",
+        "Q3": "Q3-Eu"
+      },
+      "features": {
+        "HV": [
+          "Cu/wt.%",
+          "Al/wt.%",
+          "Cr/wt.%",
+          "Mg/wt.%",
+          "Ni/wt.%",
+          "Si/wt.%",
+          "Zr/wt.%"
+        ],
+        "EC": [
+          "Cu/wt.%",
+          "Al/wt.%",
+          "Cr/wt.%",
+          "Mg/wt.%",
+          "Ni/wt.%",
+          "Si/wt.%",
+          "Zr/wt.%"
+        ],
+        "Q3": [
+          "Cu/wt.%",
+          "Al/wt.%",
+          "Cr/wt.%",
+          "Mg/wt.%",
+          "Ni/wt.%",
+          "Si/wt.%",
+          "Zr/wt.%"
+        ]
+      }
+    },
+    "S1": {
+      "label": "Physicochemical feature engineering",
+      "file": "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/FE/Feature/Feature1.xlsx",
+      "sheets": {
+        "HV": "HV",
+        "EC": "EC",
+        "Q3": "Q3-Eu"
+      },
+      "target_columns": {
+        "HV": "HV",
+        "EC": "EC",
+        "Q3": "Q3-Eu"
+      },
+      "features": {
+        "HV": [
+          "Cu/wt.%",
+          "Al/wt.%",
+          "Ni/wt.%",
+          "Si/wt.%",
+          "TAlloying",
+          "N_eff",
+          "Tmavg",
+          "Smix",
+          "HHI",
+          "δ",
+          "VECvar",
+          "VECavg",
+          "Family",
+          "χvar"
+        ],
+        "EC": [
+          "Ni/wt.%",
+          "Si/wt.%",
+          "Smix",
+          "N_eff",
+          "Tmavg",
+          "HHI",
+          "δ",
+          "Alloying",
+          "VECavg"
+        ],
+        "Q3": [
+          "Ni/wt.%",
+          "Cu/wt.%",
+          "Al/wt.%",
+          "Si/wt.%",
+          "Mg/wt.%",
+          "TAlloying",
+          "Smix",
+          "N_eff",
+          "Tmavg",
+          "HHI",
+          "VECvar",
+          "VECavg",
+          "δ",
+          "χvar",
+          "Family",
+          "χavg"
+        ]
+      }
+    },
+    "S2": {
+      "label": "CTD-derived CPSP knowledge",
+      "file": "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/FE/Feature/Feature2.xlsx",
+      "sheets": {
+        "HV": "HV",
+        "EC": "EC",
+        "Q3": "Q3-Eu"
+      },
+      "target_columns": {
+        "HV": "HV",
+        "EC": "EC",
+        "Q3": "Q3-Eu"
+      },
+      "features": {
+        "HV": "__ALL_EXCEPT_ID_AND_TARGET__",
+        "EC": "__ALL_EXCEPT_ID_AND_TARGET__",
+        "Q3": "__ALL_EXCEPT_ID_AND_TARGET__"
+      }
+    }
+  },
+  "targets": {
+    "HV": {
+      "column": "Hardness/HV",
+      "model": "XGB"
+    },
+    "EC": {
+      "column": "EC/%IACS",
+      "model": "XGB"
+    },
+    "Q3": {
+      "column": "Q3-Euclidean",
+      "model": "XGB"
+    }
+  }
+}

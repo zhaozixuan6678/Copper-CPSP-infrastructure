@@ -1,0 +1,13 @@
+﻿Run_ID,Best_Params_JSON
+HV_S0_XGB_seed42,{}
+HV_S1_XGB_seed42,{}
+HV_S2_XGB_seed42,{}
+HV_S3_XGB_seed42,"{""colsample_bytree"": 0.6727299868828402, ""learning_rate"": 0.005362604871585998, ""max_bin"": 320, ""max_depth"": 10, ""min_child_weight"": 8.231433730995546, ""n_estimators"": 1400, ""reg_alpha"": 4.4734294104626844e-07, ""reg_lambda"": 0.026892128247368887, ""subsample"": 0.6849356442713105, ""tree_method"": ""hist""}"
+EC_S0_XGB_seed42,{}
+EC_S1_XGB_seed42,{}
+EC_S2_XGB_seed42,{}
+EC_S3_XGB_seed42,"{""colsample_bytree"": 0.6727299868828402, ""learning_rate"": 0.005362604871585998, ""max_bin"": 320, ""max_depth"": 10, ""min_child_weight"": 8.231433730995546, ""n_estimators"": 1400, ""reg_alpha"": 4.4734294104626844e-07, ""reg_lambda"": 0.026892128247368887, ""subsample"": 0.6849356442713105, ""tree_method"": ""hist""}"
+Q3_S0_XGB_seed42,{}
+Q3_S1_XGB_seed42,{}
+Q3_S2_XGB_seed42,{}
+Q3_S3_XGB_seed42,"{""colsample_bytree"": 0.7465447373174766, ""learning_rate"": 0.013463276257432358, ""max_bin"": 192, ""max_depth"": 7, ""min_child_weight"": 0.20940138873937436, ""n_estimators"": 900, ""reg_alpha"": 0.00012724181576752517, ""reg_lambda"": 4.892358693190529, ""subsample"": 0.7168578594140872, ""tree_method"": ""hist""}"

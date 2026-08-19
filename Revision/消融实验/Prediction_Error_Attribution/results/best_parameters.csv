@@ -1,0 +1,13 @@
+﻿Run_ID,Best_Params_JSON
+HV_S0_LGBM_seed42,{}
+HV_S1_LGBM_seed42,{}
+HV_S2_LGBM_seed42,{}
+HV_S3_LGBM_seed42,"{""model__colsample_bytree"": 0.9, ""model__learning_rate"": 0.015, ""model__max_depth"": 6, ""model__min_child_samples"": 30, ""model__n_estimators"": 1000, ""model__num_leaves"": 23, ""model__reg_lambda"": 5.0, ""model__subsample"": 0.7}"
+EC_S0_XGB_seed42,{}
+EC_S1_XGB_seed42,{}
+EC_S2_XGB_seed42,{}
+EC_S3_XGB_seed42,"{""model__colsample_bytree"": 0.8, ""model__learning_rate"": 0.06, ""model__max_depth"": 2, ""model__min_child_weight"": 6, ""model__n_estimators"": 1000, ""model__reg_alpha"": 0.1, ""model__reg_lambda"": 10.0, ""model__subsample"": 0.9}"
+Q3_S0_XGB_seed42,{}
+Q3_S1_XGB_seed42,{}
+Q3_S2_XGB_seed42,{}
+Q3_S3_XGB_seed42,"{""model__colsample_bytree"": 0.8, ""model__learning_rate"": 0.06, ""model__max_depth"": 6, ""model__min_child_weight"": 6, ""model__n_estimators"": 1000, ""model__reg_alpha"": 0.01, ""model__reg_lambda"": 5.0, ""model__subsample"": 0.7}"

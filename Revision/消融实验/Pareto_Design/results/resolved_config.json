@@ -1,0 +1,64 @@
+{
+  "feature_file": "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/FE/Feature/Feature3.xlsx",
+  "raw_file": "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/FE/Feature1.xlsx",
+  "model_file": "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/ML2/XGB.xlsx",
+  "output_dir": "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/ML2/消融实验/Pareto_Design/results",
+  "random_seed": 42,
+  "test_size": 0.2,
+  "n_candidates": 32768,
+  "bootstrap_models": 3,
+  "confidence_z": 1.0,
+  "ad_quantile": 0.95,
+  "ad_neighbors": 5,
+  "fit_full_for_design": true,
+  "composition_ranges_wt_pct": {
+    "Al": [
+      0.3,
+      0.5
+    ],
+    "Cr": [
+      0.1,
+      0.3
+    ],
+    "Mg": [
+      0.01,
+      0.16
+    ],
+    "Ni": [
+      4.0,
+      6.0
+    ],
+    "Si": [
+      1.0,
+      1.4
+    ],
+    "Zr": [
+      0.0,
+      0.0
+    ]
+  },
+  "composition_rounding_wt_pct": {
+    "Al": 0.01,
+    "Cr": 0.01,
+    "Mg": 0.01,
+    "Ni": 0.02,
+    "Si": 0.01,
+    "Zr": 0.01
+  },
+  "constraints": {
+    "cu_min_wt_pct": 92.0,
+    "ni_si_ratio": [
+      3.5,
+      6.0
+    ]
+  },
+  "fixed_processing": {
+    "Processing_Route": 2,
+    "Solution_Temp": 980.0,
+    "Solution_Time": 4.0,
+    "CR_Reduction": 50.0,
+    "Aging_Temp": 450.0,
+    "Aging_Time": 4.0
+  },
+  "experimental_alloy": null
+}

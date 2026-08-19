@@ -1,0 +1,8 @@
+{
+  "generated_candidates": 27751,
+  "in_domain_candidates": 270,
+  "pareto_points": 6,
+  "ad_threshold": 1.0847755169765292,
+  "formula_audit_median_mae": 2.963863896094525e-12,
+  "output_dir": "/Users/zixuanzhao/Desktop/Corpus–Topic–Document/ML2/消融实验/Pareto_Design/results"
+}

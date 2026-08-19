@@ -1,0 +1,4 @@
+Pareto_Point,Cu,Al,Cr,Mg,Ni,Si,Zr,Processing_Route,Solution_Temp,Solution_Time,CR_Reduction,Aging_Temp,Aging_Time,AD_valid,AD_distance,HV_mean,HV_std,HV_LCB,EC_mean,EC_std,EC_LCB,Q3_mean,Q3_std,Q3_LCB,Utopia_distance,Recommended_experimental_role
+P1_Strength_anchor,92.22,0.47000000000000003,0.14,0.13,5.98,1.06,0.0,2,980.0,4.0,50.0,450.0,4.0,True,0.8074475327305903,259.57727,8.232143,251.34512,43.640095,2.1115773,41.52852,0.771778,0.011238096,0.7605399,1.0,Boundary/reference
+P2_Balanced_knee,92.24,0.49,0.17,0.14,5.96,1.0,0.0,2,980.0,4.0,50.0,450.0,4.0,True,0.9073131174964,257.9239,8.970449,248.95345,47.002186,2.0181618,44.984024,0.771778,0.011238096,0.7605399,0.39690143,Primary experimental alloy
+P3_Conductivity_anchor,92.23,0.5,0.18,0.16,5.9,1.03,0.0,2,980.0,4.0,50.0,450.0,4.0,True,1.043067665303136,237.58359,9.619428,227.96416,49.30521,2.1717148,47.133495,0.7797955,0.0033330177,0.7764625,1.0,Boundary/reference
